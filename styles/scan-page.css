@@ -1,7 +1,6 @@
 body {
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background-color: #f0f2f5;
+    font-family: "Poppins";
     color: #333;
     display: flex;
     flex-direction: column;
@@ -13,8 +12,31 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 15px 30px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: #fbfcfc;
+    height: 50px;
+}
+
+
+header #doctor-circle {
+  border-radius: 50%;  
+  width: 60px;
+  aspect-ratio: 1 / 1;       
+  background: linear-gradient(135deg, #dff7f7, #b8d5f2); 
+  display: flex;              
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;     
+  transition: background-color 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;           
+}
+
+header #doctor-circle:hover {
+  transform: scale(1.1);  /* scales up smoothly by 10% */
+}
+
+header #doctor-circle img {
+  width: 70%;                 
+  height: auto;
 }
 
 header .logo {
@@ -23,15 +45,25 @@ header .logo {
 }
 
 header .logo img {
-    height: 45px;
+    height: 70px;
 }
 
 header nav a {
     text-decoration: none;
     color: #555;
     font-weight: bold;
-    font-size: 15px;
+    font-size: large;
     transition: color 0.3s ease;
+}
+
+header nav a:hover {
+    color: #b0d1f3;             
+}
+
+header nav {
+    display: flex;
+    align-items: center;
+    gap: 30px;
 }
 
 header nav a:hover {
@@ -71,6 +103,7 @@ main {
 
 .hero-content .text-content {
     width: 100%; 
+    font-family: Arial;
     z-index: 2; 
 }
 
@@ -134,11 +167,15 @@ main {
     color: white;
     padding: 12px 30px; 
     border: none;
-    border-radius: 20px;
-    font-size: 18px; 
+    border-radius: 40px;
+    font-size: 22px;
+    font-family: Arial;
+    font-weight: 800;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding-left: 60px;
+    padding-right: 60px;
 }
 
 .analyze-button:hover {
@@ -155,7 +192,6 @@ footer {
     background-color: #fff;
     padding: 10px 20px;
     text-align: center;
-    border-top: 1px solid #eee;
 }
 
 .disclaimer {
@@ -163,4 +199,19 @@ footer {
     color: #777;
     line-height: 1.4; 
     margin: 0; 
+}
+
+#selected{
+    width: fit-content;
+    background-color: #b0d1f3;
+    border-radius: 30px;
+    border-width: 5px 10px;
+    border-style: solid;
+    border-color: #b0d1f3;
+    color: white;
+    transition: background-color 0.5s ease, border-color 0.5s ease;
+}
+#selected:hover {
+    background-color: #7a9fcd;    
+    border-color: #7a9fcd;       
 }

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerebrum.AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/scan-page.css">
+    <link rel="icon" href="../img/favicon.png" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <a href="sign-in.html">
+        <div class="logo">
+            <img src="../img/cerebrum-logo.png" alt="Cerebrum.AI Logo">
+        </div>
+        </a>
+        <nav>
+            <a href="#" id = "selected">Scan</a>
+            <a href="#">Patients</a>
+            <div id = "doctor-circle">
+                <img src = "../img/doctor.png" alt = "doctor-icon">
+            </div>
+            
+        </nav>
+        
+    </header>
+
+    <main>
+        <section class="hero-section">
+            <div class="hero-content">
+                <img src="../img/page-brain-img.png" alt="Beyin Görseli" class="brain-image">
+                <div class="text-content">
+                    <h2>Detect Brain</h2>
+                    <h2>Tumors</h2>
+                </div>
+            </div>
+            <div class="upload-section">
+                <form>
+                    <h3>Upload Your MRI Scan</h3>
+                    <p>Select a brain MRI Image <br>(JPG/PNG/DICOM) and click Analyze.</p>
+                    <div class="file-upload-box">
+                        <input type="file" id="mri-upload" accept=".jpg, .png, .dcm">
+                        <label for="mri-upload" class="file-label">Upload your file</label>
+                    </div>
+                    <button class="analyze-button">Analyze</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p class="disclaimer">
+            <strong>Disclaimer:</strong> This prototype is for educational & research purposes only and is not approved for clinical diagnosis. Always consult a qualified medical professional for health decisions.
+        </p>
+    </footer>
+</body>
+</html>
