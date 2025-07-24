@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Cerebrum.AI{% endblock %}
+{% block page_stylesheet %}
+<link rel="stylesheet" href="{{ url_for('static', path='styles/sign-in.css') }}">
+{% endblock %}
+{% block content %}    
+    <div class="page">
+        <div class="left">
+            <img src="{{ url_for('static', path='img/sign-in-brains.jpeg') }}" alt="MRI images" class="mri-img" />
+        </div>
+        <div class="right">
+            <div class="nav">
+                <a id="about-link">About Us</a>
+            </div>
+            <div class="logo-group">
+                <img src="{{ url_for('static', path='img/cerebrum-logo.png') }}" alt="Logo" class="logo" /> 
+                <p class="subtitle">A Brain Surgeons Companion</p>
+            </div>
+            <form class="login-form" id = "login-form">
+                <div>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="exampleuser@gmail.com" required />
+                </div>
+                <div>
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="example123." required />
+                </div>
+                <button type="submit" id="sign-in-btn">Sign In</button>
+                <a href="#" class="forgot">Forgot password?</a>
+            </form>
+        </div>
+    </div>
+    <div id="about-modal">
+        <div id="about-content">
+            <button class="close-btn" id="close-modal">x</button>
+            <h2>About Us</h2>
+            <p>We are Group 97 from Google AI and Technology Academy. Cerebrum.AI is an ARGE project for our bootcamp graduation program and should not be used based on clinical diagnosis.  </p>
+            <div id = "team-container">
+                <div class = "member-card">
+                    <p >Product Owner</p>
+                    <a href="https://www.linkedin.com/in/nisa-vapurlu-61a868223/">
+                        <img class="member-photo" src="{{ url_for('static', path = 'img/nisa-vapurlu.jpeg') }}">
+                    </a>
+                    <p>Nisa<br>VAPURLU</p>
+                </div>
+                <div class = "member-card">
+                    <p>Scrum Master</p>
+                    <a href="https://www.linkedin.com/in/alperen-guner35/">
+                        <img class="member-photo" src="{{ url_for('static', path='img/alperen-guner.jpeg') }}">
+                    </a>
+                    <p>Alperen<br>GÜNER</p>
+                </div>
+                <div class = "member-card">
+                    <p>Developer</p>
+                    <a href="https://www.linkedin.com/in/nazmiyeozuygunlar/">
+                        <img class="member-photo" src="{{ url_for('static', path='img/nazmiye-ozuygunlar.jpeg') }}">,
+                    </a>
+                    <p>Nazmiye<br>ÖZUYGUNLAR</p>
+                </div>
+                <div class = "member-card">
+                    <p>Developer</p>
+                    <a href="https://www.linkedin.com/in/muratcan-aydo%C4%9Fdu/">
+                        <img class="member-photo" src="{{ url_for('static', path='img/muratcan-aydogdu.jpeg') }}">
+                    </a>
+                    <p>Muratcan<br>AYDOĞDU</p>                        
+                </div>
+                <div class = "member-card">
+                    <p>Developer</p>
+                    <a href="https://www.linkedin.com/in/%C3%BCmit-%C3%B6zteker/">
+                    <img class="member-photo" src="{{ url_for('static', path='img/umitcan-ozteker.jpeg') }}">
+                    </a>
+                    <p>Ümitcan<br>ÖZTEKER</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script type="module" src="{{ url_for('static', path='js/sign-in.js') }}"></script>
+{% endblock %}

@@ -7,68 +7,6 @@ body {
     height: 100vh;
 }
 
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 30px;
-    background-color: #fbfcfc;
-    height: 50px;
-}
-
-
-header #doctor-circle {
-  border-radius: 50%;  
-  width: 60px;
-  aspect-ratio: 1 / 1;       
-  background: linear-gradient(135deg, #dff7f7, #b8d5f2); 
-  display: flex;              
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;     
-  transition: background-color 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;           
-}
-
-header #doctor-circle:hover {
-  transform: scale(1.1);  /* scales up smoothly by 10% */
-}
-
-header #doctor-circle img {
-  width: 70%;                 
-  height: auto;
-}
-
-header .logo {
-    display: flex;
-    align-items: center;
-}
-
-header .logo img {
-    height: 70px;
-}
-
-header nav a {
-    text-decoration: none;
-    color: #555;
-    font-weight: bold;
-    font-size: large;
-    transition: color 0.3s ease;
-}
-
-header nav a:hover {
-    color: #b0d1f3;             
-}
-
-header nav {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-}
-
-header nav a:hover {
-    color: #4a90e2;
-}
 
 main {
     flex-grow: 1; 

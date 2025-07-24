@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #fff; /* Changed to white to match sign-in page */
+  font-family: 'Poppins', Arial, sans-serif;
+  color: #504f4f;
+}
+
+/* Main Title */
+  main h1 {
+    font-weight: 800;
+    font-size: 4rem;
+    text-align: center;
+    font-family: Arial;
+    margin-bottom: 40px;
+    user-select: none;
+  }
+
+  /* User Info and Results container */
+  .container {
+    justify-content: center;
+    display: flex;
+    gap: 30px;
+  }
+.user-info-container{
+  display: flex;
+  flex-direction: column;
+}
+.user-info {
+  background-color: #f4faff;
+  border-radius: 8px;
+  padding: 15px 20px;
+  width: fit-content; /* adjust as needed */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+#userinfo-title, #results-title{
+  display: flex;
+  font-family: Arial;
+  font-size: 35px;
+  font-weight: 800;
+}
+
+.user-info p {
+  margin: 6px 0;
+  font-size: 22px;
+  color: #555;
+}
+
+.user-info strong {
+  color: #000;
+}
+
+.table-wrapper {
+  width: 1200px;
+  max-width: 1200px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin: 0 auto;
+  background-color: #fff;
+  border: 1px solid #000;
+  border-radius: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Poppins', Arial, sans-serif;
+  background-color: #fff;
+}
+
+th, td {
+  border: 1px solid #000;
+  padding: 10px;
+  text-align: center;
+  color: #000;
+  background-color: #fff;
+}
+
+th {
+  background-color: #fff;
+  color: #000;
+  font-weight: bold;
+}
+
