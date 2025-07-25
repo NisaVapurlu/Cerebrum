@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block title %}Patient Profile{% endblock %}
 {% block page_stylesheet %}
 <link rel="stylesheet" href="{{ url_for('static', path='styles/base.css') }}" />
@@ -48,12 +49,14 @@
           </tr>
         </thead>
         <tbody>
+          {% for result in results %}
           <tr>
-            <td>1</td>
-            <td>Glioma</td>
-            <td>Result1001</td>
-            <td>15.07.2025 - 12:53</td>
+            <td>{{result.order}}</td>
+            <td>{{result.tumor_type}}</td>
+            <td><a class="patient-result" data-id="{{ result.id }}">{{ result.name }}</a></td>
+            <td>{{result.scanned_on}}</td>
           </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
@@ -61,6 +64,11 @@
   </div>
 </main>
 {% endblock %}
+{% block modals %}
+    {% include 'modals/result-modal.html' %}
+    {% include 'modals/doctor-modals.html' %}
+{% endblock %}
 {% block script %}
+  <script src="{{ url_for('static', path='js/patient-profile.js') }}"></script>
   <script src="{{ url_for('static', path='js/base.js') }}"></script>
 {% endblock %}

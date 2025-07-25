@@ -85,4 +85,152 @@ th {
   color: #000;
   font-weight: bold;
 }
+.patient-result{
+  cursor: pointer;
+}
 
+
+/* ------------------! Result Modal !---------------- */
+
+  /* Overlay background */
+.result-modal-overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.3);
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+  /* Modal container */
+.result-modal {
+    background: #fff;
+    border-radius: 16px;
+    animation: fadeIn 0.3s ease-in-out;
+    width: 500px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.1);
+    font-family: 'Arial', sans-serif;
+    position: relative;
+}
+
+/* Close button */
+.result-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 20px;
+  color: #888;
+  user-select: none;
+}
+.result-modal-close:hover {
+  color: red;
+}
+/* Title */
+.result-modal-title {
+  font-weight: 800;
+  margin-bottom: 8px;
+  font-family: Arial;
+}
+/* Subtitle (patient name) */
+.result-modal-subtitle {
+  font-weight: 600;
+  font-size: 17px;
+  color: #333;
+  margin-bottom: 16px;
+}
+/* Horizontal line */
+.result-modal-line {
+  border-top: 1px solid #ddd;
+  margin-bottom: 16px;
+}
+/* Content container */
+.result-modal-content {
+  display: flex;
+  gap: 12px;
+}
+/* MRI Image */
+.result-modal-image {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+}
+/* Text area */
+.result-modal-text {
+  flex: 1;
+  font-size: 20px;
+  color: #444;
+}
+/* Tumor type label */
+.tumor-type-label, .tumor-rate-label {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+/* Tumor description box */
+.tumor-description {
+  background-color: #b0d5f1; /* light blue */
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  color: white;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  user-select: none;
+}
+/* Scanned on text */
+.scanned-on {
+  font-size: 10px;
+  color: #666;
+  margin-top: 12px;
+}
+
+.tumor-show-report{
+  display: flex;
+  margin-top: 10px;
+  align-items: right;
+  justify-content: right;
+}
+.tumor-show-report a{
+  text-decoration: none;
+  color: black;
+}
+
+.report-button {
+    background-color: #6daee7; 
+    color: white;
+    padding: 9px 15px; 
+    border: none;
+    border-radius: 40px;
+    font-size: 15px;
+    font-family: Arial;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.report-button:hover {
+    background-color: #4a90e2;
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+  }
+  to {
+      opacity: 1;
+      transform: scale(1);
+  }
+}

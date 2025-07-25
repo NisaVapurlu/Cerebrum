@@ -13,6 +13,7 @@ async function getDoctorInfo() {
         console.log("Doctor info:", data.data);
 
         // Example: Update HTML dynamically
+        document.getElementById("patient-count").textContent = data.data.patient_count;
         document.getElementById("doctor-name").textContent = data.data.name + " " + data.data.surname;
         document.getElementById("doctor-institution").textContent = data.data.institution;
         document.getElementById("doctor-title").textContent = data.data.title;

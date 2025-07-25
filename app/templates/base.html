@@ -13,47 +13,7 @@
         {% block header_content %}{% endblock %}
     </header>
     {% block content %}{% endblock %}
-    <div id="doctor-info-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-button" id="close-doctor-modal">&times;</span>
-        <h2 class="doctor-name" id="doctor-name">Example Doctor</h2>
-        <div class="description-section">
-            <p class="description-title">Description</p>
-            <div class="doctor-details-box">
-                <p><strong>Institute:</strong> <span id="doctor-institution">Example Hospital</span></p>
-                <p><strong>Title: </strong> <span id="doctor-title">Brain Surgeon</span></p>
-                <p><strong>Patient Count: </strong> 1</p>
-                <p><strong>Created On: </strong><span id="doctor-created-on">12.07.2025</span></p>
-            </div>
-        </div>
-        <div class="modal-actions">
-            <button class="modal-action-button" id="change-password-btn">Change Password</button>
-            <button class="modal-action-button">Sign Out</button>
-            <button class="modal-action-button delete-account">Delete Account</button>
-        </div>
-    </div>
-  </div>
-  <div id="change-password-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" id="close-password-modal">&times;</span>
-            <h2 class="modal-title">Change Password</h2>
-            <form id="change-password-form">
-                <div class="form-group">
-                    <label for="current-password">Current Password</label>
-                    <input type="password" id="current-password" required>
-                </div>
-                <div class="form-group">
-                    <label for="new-password">New Password</label>
-                    <input type="password" id="new-password" required>
-                </div>
-                <div class="form-group">
-                    <label for="confirm-password">Re-type Password</label>
-                    <input type="password" id="confirm-password" required>
-                </div>
-                <button type="submit" class="submit-button">Change</button>
-            </form>
-        </div>
-  </div>
+    {% block modals %}{% endblock %}
     {% block script %}{% endblock %}
 </body>
 </html>

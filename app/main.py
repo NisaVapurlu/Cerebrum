@@ -1,5 +1,5 @@
 import firebase_admin
-import datetime
+import datetime, traceback
 from fastapi import FastAPI, Request, Query, Cookie
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -8,8 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import credentials, auth, firestore
 from google.api_core.datetime_helpers import DatetimeWithNanoseconds
 
-cred = credentials.Certificate("cerebrumal-firebase-adminsdk-fbsvc-1ed7ecd1a2.json")
-firebase_admin.initialize_app(cred)
+
+if not firebase_admin._apps:
+    cred = credentials.Certificate("cerebrumal-firebase-adminsdk-fbsvc-82c52971a9.json")
+    firebase_admin.initialize_app(cred)
+
 db = firestore.client()
 
 app = FastAPI()
@@ -60,19 +63,6 @@ async def scan(request: Request, session_token: str = Cookie(None)):
     
     return templates.TemplateResponse("scan-page.html", {"request": request})
 
-@app.get("/patient-profile/{patient_id}", response_class=HTMLResponse)
-async def patient_profile(request: Request, patient_id: str, session_token: str = Cookie(None)):
-    if not session_token:
-        return RedirectResponse(url="/")
-    patient_ref = db.collection("patient").document(patient_id)
-    patient = patient_ref.get()
-    if not patient.exists:
-        return JSONResponse({"error": "Patient not found"}, status_code=404)
-    patient_data = patient.to_dict()
-    print(type(patient_data["gender"]))
-    patient_data["gender"] = "Male" if patient_data["gender"] else "Female"
-    return templates.TemplateResponse("patient-profile.html", {"request": request, "patient": patient_data})
-
 @app.get("/doctor-area")
 async def doctor_area(token: str = Query(...)):
     try:
@@ -94,7 +84,9 @@ async def doctor_area(token: str = Query(...)):
             max_age=3600*24 # 1 day
         )
         return response
-    except Exception:
+    except Exception as e:
+        print("Exception in /doctor-area:")
+        traceback.print_exc()
         return RedirectResponse(url="/")
 
 @app.get("/doctor-info")
@@ -103,6 +95,12 @@ async def doctor_info(request: Request, session_token: str = Cookie(None)):
         print("No available session found.")
         return RedirectResponse(url="/")
     doc_ref = db.collection("doctor").document(session_token)
+    patients = db.collection("patient").stream()
+    counter = 0
+    for patient in patients:
+        patient_data = patient.to_dict()
+        if patient_data["doctor"] == session_token:
+            counter += 1
     doc = doc_ref.get()
 
     if not doc.exists:
@@ -120,32 +118,77 @@ async def doctor_info(request: Request, session_token: str = Cookie(None)):
         "surname": doctor_data.get("surname"),
         "institution": doctor_data.get("institution"),
         "title": doctor_data.get("title"),
-        "created_on": created_on.strftime("%d/%m/%Y")
+        "created_on": created_on.strftime("%d/%m/%Y"),
+        "patient_count": counter
     }
 
     return {"message": "Fetched doctor response", "data": response}
-"""
-@app.get("/doctor-area")
-async def doctor_area(user_id: str = Depends(verify_token)):
-    # ✅ Check if user is a doctor
-    doc_ref = db.collection("doctor").document(user_id)
-    if not doc_ref.get().exists:
-        raise HTTPException(status_code=403, detail="You are not authorized")
 
-    # ✅ Set session cookie
-    return {"message": "Doctor signed in." }
-
-    @app.get("/scan-mri", response_class=HTMLResponse)
-
-async def scan(request: Request, session_token: str = Cookie(None)):
+@app.get("/result/{result_id}")
+async def result_info(request: Request, result_id: str, session_token: str = Cookie(None)):
     if not session_token:
+        print("No available session found.")
         return RedirectResponse(url="/")
     
-    # ✅ (Optional) Double-check the session_token is a valid doctor
-    doc_ref = db.collection("doctor").document(session_token)
-    if not doc_ref.get().exists:
+    result_ref = db.collection("results").document(result_id)
+    res = result_ref.get()
+
+    if not res.exists:
+        return JSONResponse({"error": "Doctor not found"}, status_code=404)
+
+    result_data = res.to_dict()
+    print(result_data)
+    # Take the patient
+    pat_ref = db.collection("patient").document(result_data["patient_id"])
+    pat = pat_ref.get()
+    patient_data = pat.to_dict()
+
+    scanned_on = result_data.get("scanned_on")
+    # If created_on is DatetimeWithNanoseconds, convert it to datetime
+    if isinstance(scanned_on, DatetimeWithNanoseconds):
+        scanned_on = datetime.datetime.fromtimestamp(scanned_on.timestamp())
+
+    response = {
+        "title": result_data.get("name"),
+        "patient_name":  patient_data.get("name") +" "+patient_data.get("surname"),
+        "tumor_type": result_data.get("tumor_type"),
+        "pred_rate": result_data.get("pred_rate"),
+        "description": result_data.get("description"),
+        "scanned_on": scanned_on.strftime("%d/%m/%Y %H:%M:%S")
+    }
+
+    return {"message": "Fetched doctor response", "data": response}
+
+@app.get("/patient-profile/{patient_id}", response_class=HTMLResponse)
+async def patient_profile(request: Request, patient_id: str, session_token: str = Cookie(None)):
+    if not session_token:
         return RedirectResponse(url="/")
+    patient_ref = db.collection("patient").document(patient_id)
+    patient = patient_ref.get()
+    if not patient.exists:
+        return JSONResponse({"error": "Patient not found"}, status_code=404)
+    patient_data = patient.to_dict()
+    patient_data["gender"] = "Male" if patient_data["gender"] else "Female"
+    all_results = db.collection("results").stream()
+    results = []
+    for result_doc in all_results:
+        result_data = result_doc.to_dict()
+        if result_data["patient_id"] != patient_id:
+            continue
+        scanned_on = result_data.get("scanned_on")
+        if isinstance(scanned_on, DatetimeWithNanoseconds):
+            scanned_on = datetime.datetime.fromtimestamp(scanned_on.timestamp())
 
-    return templates.TemplateResponse("scan-page.html", {"request": request})
+        results.append({
+            "id": result_doc.id,
+            "name": result_data["name"],
+            "tumor_type": result_data["tumor_type"],
+            "scanned_on": scanned_on.strftime("%d/%m/%Y %H:%M:%S") if scanned_on else None
+        })
 
-"""
+    results.sort(key=lambda r: r["scanned_on"], reverse=True)
+    for i in range(0, len(results)):
+        results[i]["order"] = i + 1
+    print(results)
+
+    return templates.TemplateResponse("patient-profile.html", {"request": request, "patient": patient_data, "results": results})
