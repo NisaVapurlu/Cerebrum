@@ -1,13 +1,16 @@
 import firebase_admin
-import datetime, traceback
-from fastapi import FastAPI, Request, Query, Cookie
+import datetime, traceback, os
+from fastapi import FastAPI, Request, Query, Cookie, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import credentials, auth, firestore
 from google.api_core.datetime_helpers import DatetimeWithNanoseconds
-
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
+from PIL import Image
+import numpy as np
 
 if not firebase_admin._apps:
     cred = credentials.Certificate("cerebrumal-firebase-adminsdk-fbsvc-82c52971a9.json")
@@ -31,6 +34,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # ✅ Jinja2 templates
 templates = Jinja2Templates(directory="app/templates")
 
+UPLOAD_DIR = ""
 @app.get("/", response_class=HTMLResponse)
 async def sign_in(request: Request):
     return templates.TemplateResponse("sign-in.html", {"request": request})
@@ -56,12 +60,53 @@ async def patient_list(request: Request, session_token: str = Cookie(None)):
         })
     return templates.TemplateResponse("patient-list.html", {"request": request, "patients": patients})
 
-@app.get("/scan-mri", response_class=HTMLResponse)
-async def scan(request: Request, session_token: str = Cookie(None)):
-    if not session_token:
-        return RedirectResponse(url="/")
+@app.api_route("/scan-mri", methods=["GET", "POST"], response_class=HTMLResponse)
+async def scan(request: Request, session_token: str = Cookie(None), file: UploadFile = File(None)):
+    if request.method == "GET":
+        return templates.TemplateResponse("scan-page.html", {"request": request})
+
+    elif request.method == "POST":
+        if not file:
+            return JSONResponse({"error": "No file uploaded"}, status_code=400)
+
+        print("Filename:", file.filename)
+
+        # Kök dizine göre statik klasörün altına kaydetmek istiyorsan:
+        base_dir = os.path.dirname(__file__)  # current file's directory
+        upload_dir = os.path.join(base_dir, "static", "upload")
+        os.makedirs(upload_dir, exist_ok=True)  # klasör yoksa oluştur
+
+        file_location = os.path.join(upload_dir, file.filename)
+
+        # Dosya içeriğini oku (sadece 1 kez!)
+        contents = await file.read()
+
+        with open(file_location, "wb") as f:
+            f.write(contents)
+
+        base_dir = os.path.dirname(__file__)
+        model_path = os.path.join(base_dir, "model.h5")
+
+        model = load_model(model_path)
+
+        class_names = ['glioma_tumor', 'meningioma_tumor', 'no_tumor', 'pituitary_tumor']
+
+        img = Image.open(file_location).convert('RGB')
+
+        img_resized = img.resize((224, 224))
+
+        img_array = image.img_to_array(img_resized)
+        img_array = img_array / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
+
+        pred_probs = model.predict(img_array)
+        pred_index = np.argmax(pred_probs)
+        pred_label = class_names[pred_index]
+        confidence = pred_probs[0][pred_index]
+        print("Prediction Rate:", confidence, "Prediction Label:", pred_label)
+
+        return JSONResponse({"message": f"Image saved to {file_location}"})
     
-    return templates.TemplateResponse("scan-page.html", {"request": request})
 
 @app.get("/doctor-area")
 async def doctor_area(token: str = Query(...)):
