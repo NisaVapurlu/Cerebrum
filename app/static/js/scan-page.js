@@ -2,6 +2,7 @@ document.getElementById("mri-form").addEventListener("submit", async function(e)
     e.preventDefault();
 
     const fileInput = document.getElementById("mri-upload");
+    const patientIdInput = document.getElementById("patient-id");
     const resultDiv = document.getElementById("upload-result");
     resultDiv.textContent = "Analyzing...";
 
@@ -12,6 +13,7 @@ document.getElementById("mri-form").addEventListener("submit", async function(e)
 
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
+    formData.append("patient_id", patientIdInput.value);
 
     try {
         const response = await fetch("/scan-mri", {

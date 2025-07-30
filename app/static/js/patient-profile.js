@@ -1,4 +1,5 @@
-  
+const STATIC_URL_BASE = "{{ url_for('static', path='') }}"
+
 document.addEventListener("DOMContentLoaded", () => {
   // Close modal on clicking the X button
   document.getElementById('result-modal-close').addEventListener('click', () => {
@@ -25,6 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('tumor-type-label').textContent = `${data.data.tumor_type}`;
             document.getElementById('tumor-rate-label').textContent = `${data.data.pred_rate}`;
             document.getElementById('tumor-description').textContent = `${data.data.description}`;
+            const myPath = `${data.data.image_path}`;
+            const fullImageUrl = `${STATIC_BASE_URL}${myPath}`;           
+            document.getElementById('mri-image').src = fullImageUrl;
             document.getElementById('scanned-on').textContent = `Scanned On: ${data.data.scanned_on}`;
             // TODO: HANDLE IMAGE DATA!
 

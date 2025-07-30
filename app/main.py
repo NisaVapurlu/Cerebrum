@@ -1,6 +1,7 @@
 import firebase_admin
-import datetime, traceback, os
-from fastapi import FastAPI, Request, Query, Cookie, UploadFile, File
+from datetime import timezone, datetime
+import traceback, os
+from fastapi import FastAPI, Request, Query, Cookie, UploadFile, File, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -11,6 +12,11 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from PIL import Image
 import numpy as np
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
+
+load_dotenv()
 
 if not firebase_admin._apps:
     cred = credentials.Certificate("cerebrumal-firebase-adminsdk-fbsvc-82c52971a9.json")
@@ -28,13 +34,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+client = genai.Client()
+
 # ✅ Static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # ✅ Jinja2 templates
 templates = Jinja2Templates(directory="app/templates")
 
-UPLOAD_DIR = ""
 @app.get("/", response_class=HTMLResponse)
 async def sign_in(request: Request):
     return templates.TemplateResponse("sign-in.html", {"request": request})
@@ -61,14 +68,18 @@ async def patient_list(request: Request, session_token: str = Cookie(None)):
     return templates.TemplateResponse("patient-list.html", {"request": request, "patients": patients})
 
 @app.api_route("/scan-mri", methods=["GET", "POST"], response_class=HTMLResponse)
-async def scan(request: Request, session_token: str = Cookie(None), file: UploadFile = File(None)):
+async def scan(request: Request, session_token: str = Cookie(None), patient_id: str = Form(None), file: UploadFile = File(None)):
+    if not session_token:
+        print("No available session found.")
+        return RedirectResponse(url="/")
+    
     if request.method == "GET":
         return templates.TemplateResponse("scan-page.html", {"request": request})
 
     elif request.method == "POST":
         if not file:
             return JSONResponse({"error": "No file uploaded"}, status_code=400)
-
+        print("Patient ID:", patient_id)
         print("Filename:", file.filename)
 
         # Kök dizine göre statik klasörün altına kaydetmek istiyorsan:
@@ -76,8 +87,11 @@ async def scan(request: Request, session_token: str = Cookie(None), file: Upload
         upload_dir = os.path.join(base_dir, "static", "upload")
         os.makedirs(upload_dir, exist_ok=True)  # klasör yoksa oluştur
 
-        file_location = os.path.join(upload_dir, file.filename)
-
+        current_utc_time_str = datetime.now(timezone.utc).strftime("%d-%m-%Y_%H-%M-%S")
+        base_name, extension = os.path.splitext(file.filename)
+        image_name = "result_" + patient_id + "_" + current_utc_time_str + extension
+        file_location = os.path.join(upload_dir, image_name)
+        print(file_location)
         # Dosya içeriğini oku (sadece 1 kez!)
         contents = await file.read()
 
@@ -104,9 +118,70 @@ async def scan(request: Request, session_token: str = Cookie(None), file: Upload
         pred_label = class_names[pred_index]
         confidence = pred_probs[0][pred_index]
         print("Prediction Rate:", confidence, "Prediction Label:", pred_label)
+        if confidence < 0.80:
+            return JSONResponse({"message": f"Low accuracy rates, try another mri."})
 
-        return JSONResponse({"message": f"Image saved to {file_location}"})
+        pat_ref = db.collection("patient").document(patient_id)
+        patient =pat_ref.get()
+        patient_data = patient.to_dict()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"""
+            You have a task to prepare detailed reports to a brain surgeon.
+            Given the patient data, can you give me a detailed report about the patients case?
+            Age:  {patient_data['age']}
+            Gender: {"Male" if patient_data['gender'] else "Female"}
+            Height: {patient_data['height']}
+            Weight: {patient_data['weight']}
+            Brain Tumor Type: {pred_label}
+            """,
+            config=types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(thinking_budget=0) # Disables thinking
+            ),
+        )
+        print(response.text)
+        
+        # Save the result to the database!
+        result_collection = db.collection("results")
+
+        # If the results can be deleted than this aproach is wrong.
+        result = {
+            "description": response.text,
+            "doctor_id": session_token,
+            "name": "Result" +"[" + current_utc_time_str + "]",
+            "patient_id": patient_id,
+            "pred_rate": float(confidence),
+            "scanned_on": firestore.SERVER_TIMESTAMP,
+            "tumor_type": pred_label.replace("_"," ").title(),
+            "image_path": "upload/" + image_name
+        }
+        result_collection.add(result)
+        return JSONResponse({"message": f"Analysis made successfully,\n check the patient results section."})
     
+
+@app.get("/log-out")
+async def log_out(session_token: str = Cookie(None)):
+    try:
+        if not session_token:
+            print("No available session found.")
+            return RedirectResponse(url="/")
+        
+        response = RedirectResponse(url="/")
+
+        response.set_cookie(
+            key="session_token",
+            value="",
+            httponly=True,
+            secure=False,
+            samesite="lax",
+            max_age=0 
+        )
+
+        return response
+    except Exception as e:
+        print("Exception in /logo-ut:")
+        traceback.print_exc()
+        return RedirectResponse(url="/")
 
 @app.get("/doctor-area")
 async def doctor_area(token: str = Query(...)):
@@ -156,7 +231,7 @@ async def doctor_info(request: Request, session_token: str = Cookie(None)):
     created_on = doctor_data.get("created_on")
     # If created_on is DatetimeWithNanoseconds, convert it to datetime
     if isinstance(created_on, DatetimeWithNanoseconds):
-        created_on = datetime.datetime.fromtimestamp(created_on.timestamp())
+        created_on = datetime.fromtimestamp(created_on.timestamp())
 
     response = {
         "name": doctor_data.get("name"),
@@ -191,7 +266,7 @@ async def result_info(request: Request, result_id: str, session_token: str = Coo
     scanned_on = result_data.get("scanned_on")
     # If created_on is DatetimeWithNanoseconds, convert it to datetime
     if isinstance(scanned_on, DatetimeWithNanoseconds):
-        scanned_on = datetime.datetime.fromtimestamp(scanned_on.timestamp())
+        scanned_on = datetime.fromtimestamp(scanned_on.timestamp())
 
     response = {
         "title": result_data.get("name"),
@@ -199,6 +274,7 @@ async def result_info(request: Request, result_id: str, session_token: str = Coo
         "tumor_type": result_data.get("tumor_type"),
         "pred_rate": result_data.get("pred_rate"),
         "description": result_data.get("description"),
+        "image_path": result_data.get("image_path"),
         "scanned_on": scanned_on.strftime("%d/%m/%Y %H:%M:%S")
     }
 
@@ -216,13 +292,16 @@ async def patient_profile(request: Request, patient_id: str, session_token: str 
     patient_data["gender"] = "Male" if patient_data["gender"] else "Female"
     all_results = db.collection("results").stream()
     results = []
+    counter = 0
     for result_doc in all_results:
         result_data = result_doc.to_dict()
         if result_data["patient_id"] != patient_id:
             continue
         scanned_on = result_data.get("scanned_on")
         if isinstance(scanned_on, DatetimeWithNanoseconds):
-            scanned_on = datetime.datetime.fromtimestamp(scanned_on.timestamp())
+            scanned_on = datetime.fromtimestamp(scanned_on.timestamp())
+        if patient_id == result_data["patient_id"]:
+            counter += 1
 
         results.append({
             "id": result_doc.id,
@@ -230,10 +309,9 @@ async def patient_profile(request: Request, patient_id: str, session_token: str 
             "tumor_type": result_data["tumor_type"],
             "scanned_on": scanned_on.strftime("%d/%m/%Y %H:%M:%S") if scanned_on else None
         })
-
+    patient_data["total_scans"] = counter
     results.sort(key=lambda r: r["scanned_on"], reverse=True)
     for i in range(0, len(results)):
         results[i]["order"] = i + 1
-    print(results)
 
     return templates.TemplateResponse("patient-profile.html", {"request": request, "patient": patient_data, "results": results})

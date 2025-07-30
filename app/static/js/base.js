@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const doctorInfoModal = document.getElementById('doctor-info-modal');
     const closeDoctorModal = document.getElementById('close-doctor-modal');
     const changePasswordButton = document.getElementById('change-password-btn'); 
-
+    const logoutButton = document.getElementById('logout-button');
     // Change Password Modal Elements
     const changePasswordModal = document.getElementById('change-password-modal'); 
     const closePasswordModal = document.getElementById('close-password-modal');
@@ -57,6 +57,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (changePasswordModal) { 
             changePasswordModal.style.display = 'flex'; // Şifre değiştirme modalını göster
         }
+    });
+    logoutButton.addEventListener('click', () => {
+        console.log("Pressed!");
+        window.location.href = `http://127.0.0.1:8000/log-out`;
     });
 
     // Close Change Password Modal

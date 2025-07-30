@@ -35,6 +35,10 @@
             <form id="mri-form">
                 <h3>Upload Your MRI Scan</h3>
                 <p>Select a brain MRI Image <br>(JPG/PNG/DICOM) and click Analyze.</p>
+                <div class="form-group">
+                    <label for="patient-id">Patient ID:</label>
+                    <input type="text" id="patient-id" name="patient_id" required>
+                </div>
                 <div class="file-upload-box">
                     <input type="file" id="mri-upload" name="file" accept=".jpg, .png, .dcm" required>
                     <label for="mri-upload" class="file-label">Upload your file</label>

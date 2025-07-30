@@ -111,7 +111,7 @@ th {
     background: #fff;
     border-radius: 16px;
     animation: fadeIn 0.3s ease-in-out;
-    width: 500px;
+    width: 1000px;
     padding: 24px;
     box-shadow: 0 4px 16px rgb(0 0 0 / 0.1);
     font-family: 'Arial', sans-serif;
@@ -157,8 +157,8 @@ th {
 }
 /* MRI Image */
 .result-modal-image {
-  width: 200px;
-  height: 200px;
+  width: 400px;
+  height: 400px;
   border-radius: 8px;
   object-fit: cover;
   border: 1px solid #ccc;
