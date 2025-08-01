@@ -70,7 +70,6 @@ async def patient_list(request: Request, session_token: str = Cookie(None)):
     patient_ref_list= db.collection("patient").stream()
     patients = []
     counter = 0
-    print(result_mapping)
     for patient_doc in patient_ref_list:
         patient_data = patient_doc.to_dict()  
     
