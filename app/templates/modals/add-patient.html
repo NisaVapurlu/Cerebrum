@@ -6,19 +6,23 @@
     <form class="add-patient-form">
       <label>
         Name
-        <input type="text" required ="patient-name" />
+        <input type="text" required placeholder="Example" id="patient-name" />
+      </label>
+      <label>
+        Surname
+        <input type="text" required placeholder="Example" id="patient-surname" />
       </label>
       <label>
         Height
-        <input type="number" required placeholder="patient-height" />
+        <input type="number" id="patient-height" name="height" min="0" step="any" required />
       </label>
       <label>
         Weight
-        <input type="number" required placeholder="patient-weight" />
+        <input type="number" id="patient-weight" name="weight" min="0" step="any" required />
       </label>
       <label>
         Age
-        <input type="number" required placeholder="patient-age" />
+        <input type="number" id="patient-age" name="age" min="0" required />
       </label>
       <div class="add-patient-gender-group">
         <span><b>Gender:</b></span>

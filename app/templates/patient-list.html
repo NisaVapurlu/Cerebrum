@@ -48,7 +48,7 @@
             {{ patient.name }} {{ patient.surname }}
             </a>
           </td>
-          <td>15.07.2025 - 12:53</td>
+          <td>{{patient.last_scan}}</td>
           <td class="ops">
             <img src="{{ url_for('static', path='img/scan.png') }}" alt="Brain Scan" style="width:18px;vertical-align:middle;">
           </td>
@@ -67,3 +67,4 @@
   <script src="{{ url_for('static', path='js/patient-list.js') }}"></script>
   <script src="{{ url_for('static', path='js/base.js') }}"></script>
 {% endblock %}
+

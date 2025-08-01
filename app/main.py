@@ -15,6 +15,7 @@ import numpy as np
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from collections import defaultdict
 
 load_dotenv()
 
@@ -51,20 +52,46 @@ async def patient_list(request: Request, session_token: str = Cookie(None)):
     if not session_token:
         print("No available session found.")
         return RedirectResponse(url="/")
+    
+    # Result part
+    result_mapping = {}
+    result_ref_list = db.collection("results").stream()
+    for result_doc in result_ref_list:
+        result_data = result_doc.to_dict()
+        patient_id = result_data["patient_id"]
+        if patient_id not in result_mapping:
+            result_mapping[patient_id] = []
+        scanned_on = result_data["scanned_on"]
+        if isinstance(scanned_on, DatetimeWithNanoseconds):
+            scanned_on = datetime.fromtimestamp(scanned_on.timestamp())
+        if scanned_on:
+            result_mapping[patient_id].append(scanned_on)
+
     patient_ref_list= db.collection("patient").stream()
     patients = []
     counter = 0
+    print(result_mapping)
     for patient_doc in patient_ref_list:
-        patient_data = patient_doc.to_dict()  # dictionary of the document fields
+        patient_data = patient_doc.to_dict()  
+    
         if patient_data["doctor"] != session_token:
-            continue; 
+            continue
+
+        if patient_doc.id in result_mapping:
+            result_mapping[patient_doc.id].sort(reverse = True)
+            result = result_mapping[patient_doc.id][0].strftime("%d/%m/%Y %H:%M:%S")
+        else:
+            result = "No scan made"
+  
         counter += 1
         patients.append({
             "id": patient_doc.id,
             "order": counter,
             "name": patient_data["name"],
-            "surname": patient_data["surname"]
+            "surname": patient_data["surname"],
+            "last_scan": result
         })
+
     return templates.TemplateResponse("patient-list.html", {"request": request, "patients": patients})
 
 @app.api_route("/scan-mri", methods=["GET", "POST"], response_class=HTMLResponse)
@@ -315,3 +342,51 @@ async def patient_profile(request: Request, patient_id: str, session_token: str 
         results[i]["order"] = i + 1
 
     return templates.TemplateResponse("patient-profile.html", {"request": request, "patient": patient_data, "results": results})
+
+@app.post("/create-patient")
+async def create_patient(
+    name: str = Form(...),
+    surname: str = Form(...),
+    height: float = Form(...),
+    weight: float = Form(...),
+    age: int = Form(...),
+    gender: str = Form(...),  
+    session_token: str = Cookie(None)
+):
+    if not session_token:
+        return RedirectResponse(url="/")
+    try:
+        # Gender string'ini bool'a çevir: True=Male, False=Female
+        gender_bool = True if gender.lower() == "male" else False
+        
+        patient_data = {
+            "name": name,
+            "surname": surname,
+            "height": height,
+            "weight": weight,
+            "age": age,
+            "gender": gender_bool,
+            "doctor": session_token
+        }
+        db.collection("patient").add(patient_data)
+        return {"message": "Hasta başarıyla eklendi."}
+    except Exception as e:
+        print("Hasta eklerken hata:", e)
+        return JSONResponse({"error": "Hasta eklenemedi."}, status_code=500)
+
+@app.delete("/delete-patient/{patient_id}")
+async def delete_patient(patient_id: str, session_token: str = Cookie(None)):
+    if not session_token:
+        return RedirectResponse(url="/")
+    try:
+        patient_ref = db.collection("patient").document(patient_id)
+        patient = patient_ref.get()
+        if not patient.exists:
+            return JSONResponse({"error": "Hasta bulunamadı."}, status_code=404)
+        if patient.to_dict().get("doctor") != session_token:
+            return JSONResponse({"error": "Bu hastayı silme yetkiniz yok."}, status_code=403)
+        patient_ref.delete()
+        return {"message": "Hasta başarıyla silindi."}
+    except Exception as e:
+        print("Hasta silerken hata:", e)
+        return JSONResponse({"error": "Hasta silinemedi."}, status_code=500)
